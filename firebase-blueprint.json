@@ -1,0 +1,154 @@
+{
+  "entities": {
+    "WeeklyTask": {
+      "title": "WeeklyTask",
+      "description": "A single task item scheduled for a specific ISO week and day of week (Monday=1 to Sunday=7).",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated owner UID matching request.auth.uid."
+        },
+        "weekKey": {
+          "type": "string",
+          "description": "ISO week identifier formatted as YYYY-Www (e.g., 2026-W48)."
+        },
+        "dayOfWeek": {
+          "type": "integer",
+          "description": "Day of week from 1 (Monday/Pazartesi) to 7 (Sunday/Pazar)."
+        },
+        "title": {
+          "type": "string",
+          "description": "Task title (1 to 120 characters)."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional task notes (0 to 300 characters)."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["IS", "KISISEL", "SAGLIK", "EGITIM", "DIGER"],
+          "description": "Task category."
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["YUKSEK", "NORMAL", "DUSUK"],
+          "description": "Task priority level."
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Whether the task is completed."
+        },
+        "reminderEnabled": {
+          "type": "boolean",
+          "description": "Whether a specific time reminder is enabled for this task."
+        },
+        "reminderHour": {
+          "type": "integer",
+          "description": "Optional reminder hour (0 to 23)."
+        },
+        "reminderMinute": {
+          "type": "integer",
+          "description": "Optional reminder minute (0 to 59)."
+        },
+        "sortOrder": {
+          "type": "integer",
+          "description": "Display order within the day."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp submitted via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp submitted via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "weekKey",
+        "dayOfWeek",
+        "title",
+        "category",
+        "priority",
+        "completed",
+        "reminderEnabled",
+        "sortOrder",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PlanSettings": {
+      "title": "PlanSettings",
+      "description": "User preferences for daily morning briefing, Monday weekly summary, and unlock reminders.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated owner UID matching request.auth.uid."
+        },
+        "morningHour": {
+          "type": "integer",
+          "description": "Morning briefing hour (0 to 23, default 7)."
+        },
+        "morningMinute": {
+          "type": "integer",
+          "description": "Morning briefing minute (0 to 59, default 30)."
+        },
+        "morningSummaryEnabled": {
+          "type": "boolean",
+          "description": "Whether the daily morning summary notification is enabled."
+        },
+        "mondayWeeklyBriefingEnabled": {
+          "type": "boolean",
+          "description": "Whether Monday mornings show the full week's plan summary."
+        },
+        "unlockBriefingEnabled": {
+          "type": "boolean",
+          "description": "Whether opening/unlocking the phone surfaces today's briefing."
+        },
+        "weekStartMonday": {
+          "type": "boolean",
+          "description": "Whether the week starts on Monday."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp submitted via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp submitted via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "morningHour",
+        "morningMinute",
+        "morningSummaryEnabled",
+        "mondayWeeklyBriefingEnabled",
+        "unlockBriefingEnabled",
+        "weekStartMonday",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/tasks/{taskId}": {
+      "schema": {
+        "$ref": "#/entities/WeeklyTask"
+      },
+      "description": "Per-user weekly planner tasks organized by ISO week and day."
+    },
+    "/users/{userId}/settings/{settingId}": {
+      "schema": {
+        "$ref": "#/entities/PlanSettings"
+      },
+      "description": "Per-user morning briefing and reminder preferences."
+    }
+  }
+}

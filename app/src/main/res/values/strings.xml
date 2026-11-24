@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">HaftaPlan</string>
+    <string name="widget_horizontal_desc">Yatay Haftalık Plan Widget\'ı — Bugünün görevlerini ve haftalık ilerlemeyi yatay olarak gösterir.</string>
+    <string name="widget_vertical_desc">Dikey Haftalık Plan Widget\'ı — Bugünün görev listesini ve saat hatırlatmalarını dikey olarak gösterir.</string>
+    <string name="widget_square_desc">Kare Haftalık Plan Widget\'ı — Günlük özet ilerleme oranını ve öncelikli görevleri kompakt kare kartta gösterir.</string>
+    <string name="channel_morning_name">Sabah Plan Özeti</string>
+    <string name="channel_morning_desc">Her sabah seçtiğiniz saatte Pazartesi haftalık özeti ve günlük görev bildirimleri</string>
+    <string name="channel_reminder_name">Görev Hatırlatıcıları</string>
+    <string name="channel_reminder_desc">Planladığınız görevler için zamanlı hatırlatma bildirimleri</string>
+</resources>

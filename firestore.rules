@@ -1,0 +1,131 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidTask(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.weekKey is string && data.weekKey.size() == 8 && data.weekKey.matches('^\\d{4}-W\\d{2}$') &&
+             data.dayOfWeek is int && data.dayOfWeek >= 1 && data.dayOfWeek <= 7 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 300)) &&
+             data.category is string && data.category in ['IS', 'KISISEL', 'SAGLIK', 'EGITIM', 'DIGER'] &&
+             data.priority is string && data.priority in ['YUKSEK', 'NORMAL', 'DUSUK'] &&
+             data.completed is bool &&
+             data.reminderEnabled is bool &&
+             (!('reminderHour' in data) || (data.reminderHour is int && data.reminderHour >= 0 && data.reminderHour <= 23)) &&
+             (!('reminderMinute' in data) || (data.reminderMinute is int && data.reminderMinute >= 0 && data.reminderMinute <= 59)) &&
+             data.sortOrder is int && data.sortOrder >= 0 && data.sortOrder <= 10000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidSettings(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.morningHour is int && data.morningHour >= 0 && data.morningHour <= 23 &&
+             data.morningMinute is int && data.morningMinute >= 0 && data.morningMinute <= 59 &&
+             data.morningSummaryEnabled is bool &&
+             data.mondayWeeklyBriefingEnabled is bool &&
+             data.unlockBriefingEnabled is bool &&
+             data.weekStartMonday is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /users/{userId}/tasks/{taskId} {
+      allow get: if isOwner(userId) && isValidId(taskId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) &&
+                       isValidId(taskId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'userId', 'weekKey', 'dayOfWeek', 'title', 'category',
+                         'priority', 'completed', 'reminderEnabled', 'sortOrder',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'weekKey', 'dayOfWeek', 'title', 'notes',
+                         'category', 'priority', 'completed', 'reminderEnabled',
+                         'reminderHour', 'reminderMinute', 'sortOrder',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidTask(incoming());
+
+      allow update: if isOwner(userId) &&
+                       isValidId(taskId) &&
+                       isValidTask(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       (
+                         incoming().diff(existing()).affectedKeys().hasOnly(['completed', 'updatedAt']) ||
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'weekKey', 'dayOfWeek', 'title', 'notes', 'category',
+                           'priority', 'completed', 'reminderEnabled',
+                           'reminderHour', 'reminderMinute', 'sortOrder', 'updatedAt'
+                         ])
+                       );
+
+      allow delete: if isOwner(userId) && isValidId(taskId);
+    }
+
+    match /users/{userId}/settings/{settingId} {
+      allow get: if isOwner(userId) && isValidId(settingId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) &&
+                       isValidId(settingId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'userId', 'morningHour', 'morningMinute',
+                         'morningSummaryEnabled', 'mondayWeeklyBriefingEnabled',
+                         'unlockBriefingEnabled', 'weekStartMonday',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'morningHour', 'morningMinute',
+                         'morningSummaryEnabled', 'mondayWeeklyBriefingEnabled',
+                         'unlockBriefingEnabled', 'weekStartMonday',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidSettings(incoming());
+
+      allow update: if isOwner(userId) &&
+                       isValidId(settingId) &&
+                       isValidSettings(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'morningHour', 'morningMinute',
+                         'morningSummaryEnabled', 'mondayWeeklyBriefingEnabled',
+                         'unlockBriefingEnabled', 'weekStartMonday', 'updatedAt'
+                       ]);
+
+      allow delete: if isOwner(userId) && isValidId(settingId);
+    }
+  }
+}

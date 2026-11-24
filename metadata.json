@@ -1,0 +1,6 @@
+{
+  "name": "HaftaPlan",
+  "description": "Haftalık planlama, sabah özeti bildirimleri, görev hatırlatıcıları ve yatay, dikey, kare ana ekran widget'ları sunan modern Android uygulaması.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
